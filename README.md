@@ -1,65 +1,89 @@
 # Incident Tracker API
 
-Минимальный сервис для регистрации, просмотра и обновления статуса инцидентов.
+Асинхронный сервис (FastAPI + SQLAlchemy) для регистрации инцидентов, просмотра списка и обновления статусов. В качестве основного хранилища используется PostgreSQL.
 
-## Быстрый старт
+## Требования
+
+- Python 3.11
+- PostgreSQL (локально или в контейнере)
+- Утилиты: `pip`, `docker`/`docker compose` (опционально)
+
+## Установка и запуск локально
 
 ```bash
+python -m venv .venv
+.venv\Scripts\activate      # PowerShell: .\.venv\Scripts\Activate.ps1, Linux/macOS: source .venv/bin/activate
 pip install -e .[dev]
-set DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/incidents  # Windows PowerShell: $env:DATABASE_URL="..."
+cp .env.example .env        # отредактируйте под свою БД
 uvicorn app.main:app --reload
 ```
 
-Приложение по умолчанию ожидает PostgreSQL c базой `incidents`, пользователем `postgres` и паролем `postgres`. Создайте базу вручную или используйте docker-compose (см. ниже). Переменную `DATABASE_URL` можно переопределить под вашу конфигурацию (значения подставляются из `.env`).
+По умолчанию приложение ожидает PostgreSQL с параметрами из `.env`:
 
-## Docker
+- `POSTGRES_USER=postgres`
+- `POSTGRES_PASSWORD=postgres`
+- `POSTGRES_DB=incidents`
+- `DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/incidents`
+- `DATABASE_URL_DOCKER=postgresql+asyncpg://postgres:postgres@db:5432/incidents`
+
+При запуске вне docker используйте `DATABASE_URL`; для контейнеров пригодится `DATABASE_URL_DOCKER`.
+
+### Ручное создание БД
 
 ```bash
-cp .env.example .env  # отредактируйте при необходимости
+createdb incidents
+```
+
+или выполните команды в psql:
+
+```sql
+CREATE DATABASE incidents;
+```
+
+## Запуск в Docker
+
+```bash
+cp .env.example .env
 docker compose up --build
 ```
 
-Стек docker-compose включает PostgreSQL 16 и API. Все переменные окружения вынесены в `.env` (см. `.env.example`). Для локального запуска `uvicorn` переменная `DATABASE_URL` указывает на `localhost`, а контейнер использует `DATABASE_URL_DOCKER` с хостом `db`. При необходимости скорректируйте значения в `.env`.
+Compose поднимает два сервиса:
+
+- `db` — PostgreSQL 16 с постоянным volume `db-data`
+- `api` — FastAPI-приложение на порту `8000`
+
+После старта документация доступна по адресу <http://localhost:8000/docs>.
 
 ## API
 
-- `POST /incidents`
+- `POST /incidents` — создать инцидент
+- `GET /incidents?status=<status>` — получить список инцидентов (опциональный фильтр по статусу)
+- `PATCH /incidents/{id}` — обновить статус инцидента
 
-  ```http
-  POST /incidents
-  Content-Type: application/json
-
-  {
-    "description": "Scooter offline",
-    "source": "operator",
-    "status": "in_progress"
-  }
-  ```
-
-- `GET /incidents?status=<status>`
-
-  ```http
-  GET /incidents?status=new
-  Accept: application/json
-  ```
-
-- `PATCH /incidents/{id}`
-
-  ```http
-  PATCH /incidents/1
-  Content-Type: application/json
-
-  {
-    "status": "resolved"
-  }
-  ```
-
-Доступные источники: `operator`, `monitoring`, `partner`.
+Доступные источники: `operator`, `monitoring`, `partner`.  
 Доступные статусы: `new`, `in_progress`, `resolved`, `closed`.
 
-## Тесты
+## Тестирование
 
 ```bash
+.venv\Scripts\activate
 pytest
 ```
+
+Тесты используют in-memory SQLite с подменой зависимостей, поэтому внешняя БД не требуется.
+
+## Структура проекта (упрощённо)
+
+- `app/core` — настройки приложения
+- `app/db` — подключение к БД и базовые модели
+- `app/models` — ORM-модели SQLAlchemy
+- `app/schemas` — Pydantic-схемы
+- `app/services` — бизнес-логика
+- `app/api` — маршруты FastAPI
+- `tests/` — асинхронные тесты API
+
+## Полезные ссылки
+
+- Swagger UI: <http://localhost:8000/docs>
+- JSON-schema: <http://localhost:8000/openapi.json>
 
