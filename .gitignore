@@ -26,5 +26,6 @@ coverage.xml
 *.egg-info/
 
 *.sqlite3
+task.txt
 
 
