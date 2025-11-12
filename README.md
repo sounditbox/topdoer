@@ -10,22 +10,16 @@ set DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/incidents
 uvicorn app.main:app --reload
 ```
 
-Приложение по умолчанию ожидает PostgreSQL c базой `incidents`, пользователем `postgres` и паролем `postgres`. Создайте базу вручную или используйте docker-compose (см. ниже). Переменную `DATABASE_URL` можно переопределить под вашу конфигурацию.
+Приложение по умолчанию ожидает PostgreSQL c базой `incidents`, пользователем `postgres` и паролем `postgres`. Создайте базу вручную или используйте docker-compose (см. ниже). Переменную `DATABASE_URL` можно переопределить под вашу конфигурацию (значения подставляются из `.env`).
 
 ## Docker
 
 ```bash
-docker build -t incident-tracker .
-docker run --rm -p 8000:8000 incident-tracker
-```
-
-или
-
-```bash
+cp .env.example .env  # отредактируйте при необходимости
 docker compose up --build
 ```
 
-Стек docker-compose включает PostgreSQL 16 и API. Изменить креды можно через переменные `POSTGRES_*` или `DATABASE_URL`.
+Стек docker-compose включает PostgreSQL 16 и API. Все переменные окружения вынесены в `.env` (см. `.env.example`). Для локального запуска `uvicorn` переменная `DATABASE_URL` указывает на `localhost`, а контейнер использует `DATABASE_URL_DOCKER` с хостом `db`. При необходимости скорректируйте значения в `.env`.
 
 ## API
 
