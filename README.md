@@ -5,17 +5,26 @@
 ## Быстрый старт
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate        # Windows
 pip install -e .[dev]
 uvicorn app.main:app --reload
 ```
 
-По умолчанию данные сохраняются в `SQLite` файле `incidents.db` в корне проекта. Переопределить можно переменной окружения `DATABASE_URL`, например:
+По умолчанию данные сохраняются в `SQLite` файле `incidents.db` в корне проекта. Переопределить можно переменной окружения `DATABASE_URL`
+
+## Docker
 
 ```bash
-set DATABASE_URL=sqlite+aiosqlite:///./dev.db
+docker build -t incident-tracker .
+docker run --rm -p 8000:8000 incident-tracker
 ```
+
+или
+
+```bash
+docker compose up --build
+```
+
+Для проброса нестандартного подключения задайте `DATABASE_URL` в `.env` или через переменные окружения.
 
 ## API
 
@@ -56,7 +65,6 @@ set DATABASE_URL=sqlite+aiosqlite:///./dev.db
 ## Тесты
 
 ```bash
-.venv\Scripts\activate
 pytest
 ```
 
