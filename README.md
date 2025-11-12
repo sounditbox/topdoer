@@ -6,15 +6,35 @@
 
 - Python 3.11
 - PostgreSQL (локально или в контейнере)
-- Утилиты: `pip`, `docker`/`docker compose` (опционально)
+- Poetry 1.8+
+- Docker / Docker Compose (для контейнерного запуска)
 
-## Установка и запуск локально
+## Запуск в Docker (рекомендуемый способ)
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate      # PowerShell: .\.venv\Scripts\Activate.ps1, Linux/macOS: source .venv/bin/activate
-pip install -e .[dev]
-cp .env.example .env        # отредактируйте под свою БД
+cp .env.example .env        # отредактируйте при необходимости
+docker compose up --build
+```
+
+Compose поднимает два сервиса:
+
+- `db` — PostgreSQL 16 с постоянным volume `db-data`
+- `api` — FastAPI-приложение на порту `8000`
+
+После старта документация доступна по адресу <http://localhost:8000/docs>.
+
+## Локальная разработка (Poetry)
+
+```bash
+poetry install
+cp .env.example .env
+poetry run uvicorn app.main:app --reload
+```
+
+Если хотите активировать виртуальное окружение:
+
+```bash
+poetry shell
 uvicorn app.main:app --reload
 ```
 
@@ -40,20 +60,6 @@ createdb incidents
 CREATE DATABASE incidents;
 ```
 
-## Запуск в Docker
-
-```bash
-cp .env.example .env
-docker compose up --build
-```
-
-Compose поднимает два сервиса:
-
-- `db` — PostgreSQL 16 с постоянным volume `db-data`
-- `api` — FastAPI-приложение на порту `8000`
-
-После старта документация доступна по адресу <http://localhost:8000/docs>.
-
 ## API
 
 - `POST /incidents` — создать инцидент
@@ -66,8 +72,7 @@ Compose поднимает два сервиса:
 ## Тестирование
 
 ```bash
-.venv\Scripts\activate
-pytest
+poetry run pytest
 ```
 
 Тесты используют in-memory SQLite с подменой зависимостей, поэтому внешняя БД не требуется.
