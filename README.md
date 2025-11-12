@@ -4,12 +4,12 @@
 
 ## Требования
 
-- Python 3.11
+- Python 3.11+
 - PostgreSQL (локально или в контейнере)
 - Poetry 1.8+
 - Docker / Docker Compose (для контейнерного запуска)
 
-## Запуск в Docker (рекомендуемый способ)
+## Запуск в Docker
 
 ```bash
 cp .env.example .env        # отредактируйте при необходимости
@@ -31,13 +31,6 @@ cp .env.example .env
 poetry run uvicorn app.main:app --reload
 ```
 
-Если хотите активировать виртуальное окружение:
-
-```bash
-poetry shell
-uvicorn app.main:app --reload
-```
-
 По умолчанию приложение ожидает PostgreSQL с параметрами из `.env`:
 
 - `POSTGRES_USER=postgres`
@@ -47,19 +40,6 @@ uvicorn app.main:app --reload
 - `DATABASE_URL_DOCKER=postgresql+asyncpg://postgres:postgres@db:5432/incidents`
 
 При запуске вне docker используйте `DATABASE_URL`; для контейнеров пригодится `DATABASE_URL_DOCKER`.
-
-### Ручное создание БД
-
-```bash
-createdb incidents
-```
-
-или выполните команды в psql:
-
-```sql
-CREATE DATABASE incidents;
-```
-
 ## API
 
 - `POST /incidents` — создать инцидент
@@ -70,14 +50,14 @@ CREATE DATABASE incidents;
 Доступные статусы: `new`, `in_progress`, `resolved`, `closed`.
 
 ## Тестирование
-
+В рабочей директории:
 ```bash
 poetry run pytest
 ```
 
 Тесты используют in-memory SQLite с подменой зависимостей, поэтому внешняя БД не требуется.
 
-## Структура проекта (упрощённо)
+## Структура проекта
 
 - `app/core` — настройки приложения
 - `app/db` — подключение к БД и базовые модели
