@@ -39,11 +39,8 @@ async def create_incident_endpoint(
 
 @router.get("/", response_model=IncidentList)
 async def list_incidents_endpoint(
-    status_filter: Annotated[
-        IncidentStatus | None,
-        Query(default=None, alias="status"),
-    ],
     session: Annotated[AsyncSession, Depends(get_session)],
+    status_filter: Annotated[IncidentStatus | None, Query(alias="status")] = None,
 ) -> IncidentList:
     incidents = await list_incidents(session, status=status_filter)
     return IncidentList(items=[IncidentRead.model_validate(obj) for obj in incidents])
