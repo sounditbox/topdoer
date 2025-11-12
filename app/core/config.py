@@ -5,7 +5,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_name: str = "Incident Tracker API"
-    database_url: str = "sqlite+aiosqlite:///./incidents.db"
+    database_url: str = (
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/incidents"
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",

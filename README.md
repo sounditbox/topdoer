@@ -6,10 +6,11 @@
 
 ```bash
 pip install -e .[dev]
+set DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/incidents  # Windows PowerShell: $env:DATABASE_URL="..."
 uvicorn app.main:app --reload
 ```
 
-По умолчанию данные сохраняются в `SQLite` файле `incidents.db` в корне проекта. Переопределить можно переменной окружения `DATABASE_URL`
+Приложение по умолчанию ожидает PostgreSQL c базой `incidents`, пользователем `postgres` и паролем `postgres`. Создайте базу вручную или используйте docker-compose (см. ниже). Переменную `DATABASE_URL` можно переопределить под вашу конфигурацию.
 
 ## Docker
 
@@ -24,7 +25,7 @@ docker run --rm -p 8000:8000 incident-tracker
 docker compose up --build
 ```
 
-Для проброса нестандартного подключения задайте `DATABASE_URL` в `.env` или через переменные окружения.
+Стек docker-compose включает PostgreSQL 16 и API. Изменить креды можно через переменные `POSTGRES_*` или `DATABASE_URL`.
 
 ## API
 
