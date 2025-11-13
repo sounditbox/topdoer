@@ -1,62 +1,74 @@
 # Incident Tracker API
 
-Минимальный сервис для регистрации, просмотра и обновления статуса инцидентов.
+Асинхронный сервис (FastAPI + SQLAlchemy) для регистрации инцидентов, просмотра списка и обновления статусов. В качестве основного хранилища используется PostgreSQL.
 
-## Быстрый старт
+## Требования
 
-```bash
-python -m venv .venv
-.venv\Scripts\activate        # Windows
-pip install -e .[dev]
-uvicorn app.main:app --reload
-```
+- Python 3.11+
+- PostgreSQL (локально или в контейнере)
+- Poetry 1.8+
+- Docker / Docker Compose (для контейнерного запуска)
 
-По умолчанию данные сохраняются в `SQLite` файле `incidents.db` в корне проекта. Переопределить можно переменной окружения `DATABASE_URL`, например:
+## Запуск в Docker
 
 ```bash
-set DATABASE_URL=sqlite+aiosqlite:///./dev.db
+cp .env.example .env        # отредактируйте при необходимости
+docker compose up --build
 ```
 
+Compose поднимает два сервиса:
+
+- `db` — PostgreSQL 16 с постоянным volume `db-data`
+- `api` — FastAPI-приложение на порту `8000`
+
+После старта документация доступна по адресу <http://localhost:8000/docs>.
+
+## Локальная разработка (Poetry)
+
+```bash
+poetry install
+cp .env.example .env
+poetry run uvicorn app.main:app --reload
+```
+
+По умолчанию приложение ожидает PostgreSQL с параметрами из `.env`:
+
+- `POSTGRES_USER=postgres`
+- `POSTGRES_PASSWORD=postgres`
+- `POSTGRES_DB=incidents`
+- `DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/incidents`
+- `DATABASE_URL_DOCKER=postgresql+asyncpg://postgres:postgres@db:5432/incidents`
+
+При запуске вне docker используйте `DATABASE_URL`; для контейнеров пригодится `DATABASE_URL_DOCKER`.
 ## API
 
-- `POST /incidents`
+- `POST /incidents` — создать инцидент
+- `GET /incidents?status=<status>` — получить список инцидентов (опциональный фильтр по статусу)
+- `PATCH /incidents/{id}` — обновить статус инцидента
 
-  ```http
-  POST /incidents
-  Content-Type: application/json
-
-  {
-    "description": "Scooter offline",
-    "source": "operator",
-    "status": "in_progress"
-  }
-  ```
-
-- `GET /incidents?status=<status>`
-
-  ```http
-  GET /incidents?status=new
-  Accept: application/json
-  ```
-
-- `PATCH /incidents/{id}`
-
-  ```http
-  PATCH /incidents/1
-  Content-Type: application/json
-
-  {
-    "status": "resolved"
-  }
-  ```
-
-Доступные источники: `operator`, `monitoring`, `partner`.
+Доступные источники: `operator`, `monitoring`, `partner`.  
 Доступные статусы: `new`, `in_progress`, `resolved`, `closed`.
 
-## Тесты
-
+## Тестирование
+В рабочей директории:
 ```bash
-.venv\Scripts\activate
-pytest
+poetry run pytest
 ```
+
+Тесты используют in-memory SQLite с подменой зависимостей, поэтому внешняя БД не требуется.
+
+## Структура проекта
+
+- `app/core` — настройки приложения
+- `app/db` — подключение к БД и базовые модели
+- `app/models` — ORM-модели SQLAlchemy
+- `app/schemas` — Pydantic-схемы
+- `app/services` — бизнес-логика
+- `app/api` — маршруты FastAPI
+- `tests/` — асинхронные тесты API
+
+## Полезные ссылки
+
+- Swagger UI: <http://localhost:8000/docs>
+- JSON-schema: <http://localhost:8000/openapi.json>
 
